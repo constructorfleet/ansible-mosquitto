@@ -1,0 +1,31 @@
+- name: Mosquitto MQTT Broker and Configuration
+  hosts:
+    - mqtt_broker
+    - automation
+    - machine_learning
+  remote_user: root
+  gather_facts: yes
+  
+tasks:
+  - import_role:
+      name: common
+  - import_role:
+      name: openldap
+    when:  openldap_server_ip is defined and openldap_server_ip != None
+  - import_role:
+      name: ceph-fs
+    when:
+      - shared_storage
+      - storage_backend == "cephfs"
+  - import_role:
+      name: mosquitto
+    tags:
+      - mqtt_config
+      - mqtt_auth
+  - import_role:
+      name: docker
+    tags:
+      - mqtt_container
+  - import_role:
+      name: telegraf
+    when: "'telegraf' in group_names"
